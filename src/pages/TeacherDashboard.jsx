@@ -83,14 +83,65 @@ const PLANNING_CARD_ACCENTS = [
     title: "text-red-950",
   },
 ];
+function polarToCartesian(cx, cy, r, angle) {
+  const rad = ((angle - 90) * Math.PI) / 180;
+  return {
+    x: cx + r * Math.cos(rad),
+    y: cy + r * Math.sin(rad),
+  };
+}
+
+function describeArc(cx, cy, r, startAngle, endAngle) {
+  const start = polarToCartesian(cx, cy, r, endAngle);
+  const end = polarToCartesian(cx, cy, r, startAngle);
+  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+
+  return [
+    "M",
+    start.x,
+    start.y,
+    "A",
+    r,
+    r,
+    0,
+    largeArcFlag,
+    0,
+    end.x,
+    end.y,
+  ].join(" ");
+}
 
 export default function TeacherDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewDate, setViewDate] = useState(() => {
-    const t = todayLocal();
+  const t = todayLocal();
     return new Date(t.getFullYear(), t.getMonth(), 1);
   });
   const [selectedDate, setSelectedDate] = useState(() => todayLocal());
+
+  const analyticsMock = {
+    totalTeams: 12,
+    projectStages: {
+      cadrage: 100,
+      conception: 85,
+      realisation: 45,
+      redaction: 15,
+    },
+    teamPerformance: [
+      { id: 1, name: "Groupe 1", completedTasks: 1, totalTasks: 30 },
+      { id: 2, name: "Groupe 2", completedTasks: 4, totalTasks: 31 },
+      { id: 3, name: "Groupe 3", completedTasks: 5, totalTasks: 33 },
+      { id: 4, name: "Groupe 4", completedTasks: 8, totalTasks: 32 },
+    ],
+    activity: {
+      daily: [20, 35, 30, 50, 40, 55, 48],
+      weekly: [35, 48, 42, 60, 55, 70, 65, 58],
+      annually: [48, 62, 40, 55, 78, 60, 75, 68, 52, 50, 42, 72],
+    },
+  };
+
+  const [analytics, setAnalytics] = useState(analyticsMock);
+  const [activityRange, setActivityRange] = useState("annually");
 
   const year = viewDate.getFullYear();
   const monthIndex = viewDate.getMonth();
@@ -153,6 +204,25 @@ export default function TeacherDashboard() {
       (a, b) => a.date.getTime() - b.date.getTime() || a.time.localeCompare(b.time),
     );
   }, [planningItems]);
+ const globalProgress = useMemo(() => {
+  const values = Object.values(analytics.projectStages || {});
+  if (!values.length) return 0;
+  return Math.round(values.reduce((sum, val) => sum + val, 0) / values.length);
+}, [analytics]);
+
+const teamPerformanceData = useMemo(() => {
+  return (analytics.teamPerformance || []).map((team) => ({
+    ...team,
+    percent: team.totalTasks
+      ? Math.round((team.completedTasks / team.totalTasks) * 100)
+      : 0,
+  }));
+}, [analytics]);
+
+const progressArc = useMemo(() => {
+  const endAngle = 180 + (globalProgress / 100) * 180;
+  return describeArc(120, 120, 86, 180, endAngle);
+}, [globalProgress]);
 
   function openPlanningForm() {
     setEditingId(null);
@@ -529,6 +599,120 @@ export default function TeacherDashboard() {
                 </div>
               </div>
             </div>
+               {/* Analytics Section */}
+<div className="mt-8">
+  <div className="grid gap-6 xl:grid-cols-2">
+
+    {/* Statut des Projets */}
+    <div className="rounded-[28px] bg-white p-6 shadow-sm h-full">
+      <h3 className="text-[22px] font-semibold text-slate-800">
+        Statut des Projets
+      </h3>
+
+      <div className="relative mt-6 flex justify-center">
+        <div className="relative h-[210px] w-[240px]">
+          <svg viewBox="0 0 240 160" className="h-full w-full">
+            <path
+              d={describeArc(120, 120, 86, 180, 360)}
+              fill="none"
+              stroke="#ece9ff"
+              strokeWidth="22"
+              strokeLinecap="round"
+            />
+            <path
+              d={progressArc}
+              fill="none"
+              stroke="#8b5cf6"
+              strokeWidth="22"
+              strokeLinecap="round"
+            />
+          </svg>
+
+          <div className="absolute inset-0 flex flex-col items-center justify-center pt-8">
+            <p className="text-sm font-medium text-slate-400">
+              Progression:
+            </p>
+            <p className="text-4xl font-bold text-slate-800">
+              {globalProgress}%
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-4">
+        <div>
+          <p className="text-sm text-slate-500">Cadrage</p>
+          <p className="text-lg font-semibold text-violet-500">
+            {analytics.projectStages.cadrage}%
+          </p>
+        </div>
+        <div>
+          <p className="text-sm text-slate-500">Conception</p>
+          <p className="text-lg font-semibold text-violet-500">
+            {analytics.projectStages.conception}%
+          </p>
+        </div>
+        <div>
+          <p className="text-sm text-slate-500">Réalisation</p>
+          <p className="text-lg font-semibold text-violet-500">
+            {analytics.projectStages.realisation}%
+          </p>
+        </div>
+        <div>
+          <p className="text-sm text-slate-500">Rédaction</p>
+          <p className="text-lg font-semibold text-violet-500">
+            {analytics.projectStages.redaction}%
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {/* Performance des Équipes */}
+    <div className="rounded-[28px] bg-white p-6 shadow-sm h-full">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h3 className="text-[22px] font-semibold text-slate-800">
+            Performance des Équipes
+          </h3>
+          <p className="mt-1 text-sm text-slate-400">
+            Tâches complétées par groupe
+          </p>
+        </div>
+
+        <div className="text-right">
+          <p className="text-xs text-slate-400">Total:</p>
+          <p className="text-2xl font-bold text-sky-500">
+            {analytics.totalTeams} Équipes
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-6 space-y-4">
+        {teamPerformanceData.map((team) => (
+          <div key={team.id} className="flex items-center gap-3">
+            <span className="w-10 text-sm font-medium text-slate-500">
+              {team.percent}%
+            </span>
+
+            <div className="h-10 flex-1 overflow-hidden rounded-full bg-slate-100">
+              <div
+                className="flex h-full items-center rounded-full bg-gradient-to-r from-sky-400 to-blue-500 px-4 text-sm font-medium text-white transition-all"
+                style={{ width: `${team.percent}%` }}
+              >
+                <span className="truncate">{team.name}</span>
+              </div>
+            </div>
+
+            <span className="w-10 text-right text-sm font-medium text-slate-500">
+              {team.percent}%
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+  </div>
+</div>
           </div>
         </section>
       </div>
