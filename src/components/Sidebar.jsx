@@ -42,13 +42,13 @@ export default function Sidebar() {
           />
           <SidebarItem
             icon={<PlusCircle size={18} />}
-            label="Créer équipe"
-            to="/create-team"
+            label="Encadrement"
+            to="/encadrement"
           />
           <SidebarItem
             icon={<BookOpen size={18} />}
-            label="Livrables"
-            to="/livrables"
+            label="Espace Jury"
+            to="/jury-space"
           />
           <SidebarItem
             icon={<ClipboardList size={18} />}
@@ -59,7 +59,7 @@ export default function Sidebar() {
             icon={<MessageCircle size={18} />}
             label="Messages"
             to="/messages"
-            dot
+            
           />
           <SidebarItem
             icon={<User size={18} />}
