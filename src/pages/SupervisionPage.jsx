@@ -4,55 +4,13 @@ import {
   MessageCircle,
   Search,
   SlidersHorizontal,
+  FileText,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import profileImg from "../assets/logop.png";
 
-
 const specialtyOptions = ["Tous", "IASD", "CYS", "SIW", "ISI"];
-
-const mockAssignedDefenses = [
-  {
-    id: 1,
-    date: "2026-06-15",
-    time: "09:00",
-    room: "Salle 04",
-    groupCode: "G01",
-    groupMembers: ["Ahmed", "Sara", "Yacine"],
-    subjectTitle: "Système de détection de Malware",
-    specialty: "SIW",
-    supervisors: ["Pr. Mimoun Malki", "Pr. Bensaber Djamel"],
-    juryRole: "Président",
-    chatId: "chat-group-g01",
-  },
-  {
-    id: 2,
-    date: "2026-06-15",
-    time: "09:00",
-    room: "Salle 04",
-    groupCode: "G02",
-    groupMembers: ["Lina", "Ikram", "Nabil"],
-    subjectTitle: "Audit de Sécurité Cloud",
-    specialty: "IASD",
-    supervisors: ["Pr. Mimoun Malki", "Pr. Bensaber Djamel"],
-    juryRole: "Examinateur",
-    chatId: "chat-group-g02",
-  },
-  {
-    id: 3,
-    date: "2026-06-15",
-    time: "09:00",
-    room: "Salle 04",
-    groupCode: "G03",
-    groupMembers: ["Meriem", "Amine", "Sofiane"],
-    subjectTitle: "Optimisation du Réseau IoT",
-    specialty: "ISI",
-    supervisors: ["Pr. Mimoun Malki", "Pr. Bensaber Djamel"],
-    juryRole: "Président",
-    chatId: "chat-group-g03",
-  },
-];
 
 const specialtyBadgeColors = {
   IASD: "bg-purple-100 text-purple-700",
@@ -61,94 +19,144 @@ const specialtyBadgeColors = {
   ISI: "bg-green-100 text-green-700",
 };
 
-const roleBadgeColors = {
-  Président: "bg-blue-100 text-blue-700",
-  Examinateur: "bg-purple-100 text-purple-700",
-  Rapporteur: "bg-amber-100 text-amber-700",
+const livrableStatusColors = {
+  Déposé: "text-blue-600",
+  Validé: "text-green-600",
+  "Non déposé": "text-red-500",
 };
 
-export default function JurySpacePage() {
+const mockSupervisions = [
+  {
+    id: 1,
+    groupCode: "G01",
+    members: ["Ahmed", "Sara", "Yacine"],
+    subjectTitle: "Système de détection de Malware",
+    specialty: "IASD",
+    lastDeliverable: {
+      title: "Rapport_1.pdf",
+      status: "Déposé",
+    },
+    coSupervisor: "Pr. Bensaber Djamel",
+    chatId: "chat-group-g01",
+  },
+  {
+    id: 2,
+    groupCode: "G02",
+    members: ["Lina", "Ikram", "Nabil"],
+    subjectTitle: "Audit de Sécurité Cloud",
+    specialty: "SIW",
+    lastDeliverable: {
+      title: "Rapport_2.pdf",
+      status: "Validé",
+    },
+    coSupervisor: "Pr. Bensaber Djamel",
+    chatId: "chat-group-g02",
+  },
+  {
+    id: 3,
+    groupCode: "G03",
+    members: ["Meriem", "Amine", "Sofiane"],
+    subjectTitle: "Optimisation du Réseau IoT",
+    specialty: "CYS",
+    lastDeliverable: {
+      title: "Rapport_3.pdf",
+      status: "Validé",
+    },
+    coSupervisor: "Pr. Bensaber Djamel",
+    chatId: "chat-group-g03",
+  },
+  {
+    id: 4,
+    groupCode: "G04",
+    members: ["Aya", "Rayane", "Nour"],
+    subjectTitle: "Gestion intelligente des livrables",
+    specialty: "ISI",
+    lastDeliverable: {
+      title: "Aucun livrable",
+      status: "Non déposé",
+    },
+    coSupervisor: "Pr. Bensaber Djamel",
+    chatId: "chat-group-g04",
+  },
+];
+
+export default function SupervisionPage() {
   const navigate = useNavigate();
 
   // BACKEND LATER:
-  // récupérer le prof connecté depuis auth/session/token
+  // ces infos viendront du login/session/token
   const [teacherInfo] = useState({
     fullName: "Pr. Mimoun Malki",
     profileImage: profileImg,
   });
 
-  // état principal
-  const [assignedDefenses, setAssignedDefenses] = useState([]);
-  const [selectedSpecialty, setSelectedSpecialty] = useState("Tous");
+  // données principales
+  const [supervisions, setSupervisions] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSpecialty, setSelectedSpecialty] = useState("Tous");
+  const [showFilters, setShowFilters] = useState(false);
 
-  // préparation backend
+  // états backend-ready
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
   // filtres avancés
-  const [showFilters, setShowFilters] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState({
-    date: "",
     groupCode: "",
     memberName: "",
     subject: "",
     specialty: "",
-    supervisor: "",
+    coSupervisor: "",
+    livrableStatus: "",
   });
 
-  async function fetchAssignedDefenses() {
+  async function fetchSupervisions() {
     try {
       setIsLoading(true);
       setError("");
 
       // BACKEND LATER:
-      // ici tu feras un GET vers l'API des soutenances affectées au jury
+      // GET /api/teacher/supervisions
       // exemple:
-      // const res = await fetch("http://localhost:5000/api/jury/assigned-defenses");
+      // const res = await fetch("http://localhost:5000/api/teacher/supervisions");
       // const data = await res.json();
-      // setAssignedDefenses(data);
+      // setSupervisions(data);
 
-      // MOCK TEMPORAIRE:
-      // au début de l’année, l’admin n’a encore rien affecté
-      // laisse [] pour voir l’état vide
-      // setAssignedDefenses([]);
+      // ÉTAT VIDE MÉTIER:
+      // au début, si l'admin n'a encore affecté aucun encadrement:
+      // setSupervisions([]);
 
-      // EXEMPLE STATIQUE POUR TEST UI:
-      setAssignedDefenses(mockAssignedDefenses);
+      // EXEMPLE STATIQUE TEMPORAIRE:
+      setSupervisions(mockSupervisions);
     } catch (err) {
-      setError("Impossible de charger les soutenances affectées.");
+      setError("Impossible de charger les encadrements.");
     } finally {
       setIsLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchAssignedDefenses();
+    fetchSupervisions();
   }, []);
 
-  const filteredDefenses = useMemo(() => {
-    return assignedDefenses.filter((item) => {
+  const filteredSupervisions = useMemo(() => {
+    return supervisions.filter((item) => {
       const globalSearch = searchQuery.toLowerCase().trim();
 
       const matchesGlobalSearch =
         !globalSearch ||
-        item.subjectTitle.toLowerCase().includes(globalSearch) ||
         item.groupCode.toLowerCase().includes(globalSearch) ||
+        item.subjectTitle.toLowerCase().includes(globalSearch) ||
         item.specialty.toLowerCase().includes(globalSearch) ||
-        item.room.toLowerCase().includes(globalSearch) ||
-        item.groupMembers.some((member) =>
+        item.coSupervisor.toLowerCase().includes(globalSearch) ||
+        item.members.some((member) =>
           member.toLowerCase().includes(globalSearch),
         ) ||
-        item.supervisors.some((sup) =>
-          sup.toLowerCase().includes(globalSearch),
-        );
+        item.lastDeliverable.title.toLowerCase().includes(globalSearch) ||
+        item.lastDeliverable.status.toLowerCase().includes(globalSearch);
 
       const matchesSpecialty =
         selectedSpecialty === "Tous" || item.specialty === selectedSpecialty;
-
-      const matchesDate =
-        !advancedFilters.date || item.date === advancedFilters.date;
 
       const matchesGroup =
         !advancedFilters.groupCode ||
@@ -158,7 +166,7 @@ export default function JurySpacePage() {
 
       const matchesMember =
         !advancedFilters.memberName ||
-        item.groupMembers.some((member) =>
+        item.members.some((member) =>
           member
             .toLowerCase()
             .includes(advancedFilters.memberName.toLowerCase()),
@@ -176,24 +184,30 @@ export default function JurySpacePage() {
           .toLowerCase()
           .includes(advancedFilters.specialty.toLowerCase());
 
-      const matchesSupervisor =
-        !advancedFilters.supervisor ||
-        item.supervisors.some((sup) =>
-          sup.toLowerCase().includes(advancedFilters.supervisor.toLowerCase()),
-        );
+      const matchesCoSupervisor =
+        !advancedFilters.coSupervisor ||
+        item.coSupervisor
+          .toLowerCase()
+          .includes(advancedFilters.coSupervisor.toLowerCase());
+
+      const matchesLivrableStatus =
+        !advancedFilters.livrableStatus ||
+        item.lastDeliverable.status
+          .toLowerCase()
+          .includes(advancedFilters.livrableStatus.toLowerCase());
 
       return (
         matchesGlobalSearch &&
         matchesSpecialty &&
-        matchesDate &&
         matchesGroup &&
         matchesMember &&
         matchesSubject &&
         matchesAdvancedSpecialty &&
-        matchesSupervisor
+        matchesCoSupervisor &&
+        matchesLivrableStatus
       );
     });
-  }, [assignedDefenses, searchQuery, selectedSpecialty, advancedFilters]);
+  }, [supervisions, searchQuery, selectedSpecialty, advancedFilters]);
 
   function handleAdvancedFilterChange(e) {
     const { name, value } = e.target;
@@ -205,31 +219,27 @@ export default function JurySpacePage() {
 
   function resetAdvancedFilters() {
     setAdvancedFilters({
-      date: "",
       groupCode: "",
       memberName: "",
       subject: "",
       specialty: "",
-      supervisor: "",
+      coSupervisor: "",
+      livrableStatus: "",
     });
   }
 
-  function handleOpenGroupChat(defense) {
+  function handleOpenGroupChat(item) {
     // CHAT LATER:
-    // ici le backend devra donner soit:
-    // - chatId
-    // - ou route du chat du groupe
-    // exemple:
-    // navigate(`/messages/${defense.chatId}`);
-
+    // plus tard:
+    // navigate(`/messages/${item.chatId}`);
     navigate("/messages");
   }
 
-  function handleViewDetails(defense) {
+  function handleFollowGroup(item) {
     // BACKEND LATER:
-    // page détails soutenance / groupe / notes / PV
-    // navigate(`/jury-space/${defense.id}`);
-    console.log("Voir détails soutenance:", defense.id);
+    // page détails groupe / avancement / livrables / validations
+    // navigate(`/supervision/${item.id}`);
+    console.log("Suivre groupe:", item.id);
   }
 
   return (
@@ -242,7 +252,7 @@ export default function JurySpacePage() {
             {/* Header */}
             <div className="flex items-center justify-between gap-4">
               <h1 className="text-2xl font-bold text-[#1A365D]">
-                Espace Jury
+                Encadrement
               </h1>
 
               <div className="flex items-center gap-3">
@@ -251,8 +261,8 @@ export default function JurySpacePage() {
                   className="relative text-slate-500 transition hover:text-slate-700"
                 >
                   <MessageCircle size={18} />
-                  {/* NOTIFICATION LATER:
-                      nombre de messages non lus */}
+                  {/* CHAT LATER:
+                      messages non lus des groupes encadrés */}
                   <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
                 </button>
 
@@ -262,7 +272,7 @@ export default function JurySpacePage() {
                 >
                   <Bell size={18} />
                   {/* NOTIFICATION LATER:
-                      notif admin : vous avez été affecté comme jury */}
+                      nouveaux livrables / validation admin / affectation */}
                   <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
                 </button>
 
@@ -286,89 +296,93 @@ export default function JurySpacePage() {
                   type="search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Rechercher un projet, sujet, groupe..."
+                  placeholder="Rechercher un projet, sujet..."
                   className="min-w-0 flex-1 bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
                 />
                 <button
-                 type="button"
-                 onClick={() => setShowFilters((prev) => !prev)}
+                  type="button"
+                  onClick={() => setShowFilters((prev) => !prev)}
+                  className="text-slate-400 transition hover:text-slate-600"
                 >
-                 <SlidersHorizontal size={18} className="text-slate-400" />
+                  <SlidersHorizontal size={18} />
                 </button>
               </div>
-               {showFilters && (
-              <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                <input
-                  type="date"
-                  name="date"
-                  value={advancedFilters.date}
-                  onChange={handleAdvancedFilterChange}
-                  className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#1A365D]"
-                />
 
-                <input
-                  type="text"
-                  name="groupCode"
-                  value={advancedFilters.groupCode}
-                  onChange={handleAdvancedFilterChange}
-                  placeholder="Nom du groupe"
-                  className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#1A365D]"
-                />
+              {showFilters ? (
+                <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                  <input
+                    type="text"
+                    name="groupCode"
+                    value={advancedFilters.groupCode}
+                    onChange={handleAdvancedFilterChange}
+                    placeholder="Nom du groupe"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#1A365D]"
+                  />
 
-                <input
-                  type="text"
-                  name="memberName"
-                  value={advancedFilters.memberName}
-                  onChange={handleAdvancedFilterChange}
-                  placeholder="Nom d'un membre"
-                  className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#1A365D]"
-                />
+                  <input
+                    type="text"
+                    name="memberName"
+                    value={advancedFilters.memberName}
+                    onChange={handleAdvancedFilterChange}
+                    placeholder="Nom d'un membre"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#1A365D]"
+                  />
 
-                <input
-                  type="text"
-                  name="subject"
-                  value={advancedFilters.subject}
-                  onChange={handleAdvancedFilterChange}
-                  placeholder="Sujet"
-                  className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#1A365D]"
-                />
+                  <input
+                    type="text"
+                    name="subject"
+                    value={advancedFilters.subject}
+                    onChange={handleAdvancedFilterChange}
+                    placeholder="Sujet"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#1A365D]"
+                  />
 
-                <input
-                  type="text"
-                  name="specialty"
-                  value={advancedFilters.specialty}
-                  onChange={handleAdvancedFilterChange}
-                  placeholder="Spécialité"
-                  className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#1A365D]"
-                />
+                  <input
+                    type="text"
+                    name="specialty"
+                    value={advancedFilters.specialty}
+                    onChange={handleAdvancedFilterChange}
+                    placeholder="Spécialité"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#1A365D]"
+                  />
 
-                <input
-                  type="text"
-                  name="supervisor"
-                  value={advancedFilters.supervisor}
-                  onChange={handleAdvancedFilterChange}
-                  placeholder="Encadreur"
-                  className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#1A365D]"
-                />
-              </div>
-                )}
-             {showFilters ? (
-              <div className="mt-4 flex justify-end">
-                <button
-                type="button"
-                onClick={resetAdvancedFilters}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
-                >
-                   Réinitialiser les filtres
-                   </button>
-              </div>
+                  <input
+                    type="text"
+                    name="coSupervisor"
+                    value={advancedFilters.coSupervisor}
+                    onChange={handleAdvancedFilterChange}
+                    placeholder="Co-encadreur"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#1A365D]"
+                  />
+
+                  <input
+                    type="text"
+                    name="livrableStatus"
+                    value={advancedFilters.livrableStatus}
+                    onChange={handleAdvancedFilterChange}
+                    placeholder="Statut livrable"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#1A365D]"
+                  />
+                </div>
+              ) : null}
+
+              {showFilters ? (
+                <div className="mt-4 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={resetAdvancedFilters}
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                  >
+                    Réinitialiser les filtres
+                  </button>
+                </div>
               ) : null}
             </div>
 
             {/* Title + specialty filters */}
             <div className="mt-8 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <h2 className="text-2xl font-bold text-[#1A365D]">
-                Planning des Soutenances
+                Mes Encadrements
               </h2>
 
               <div className="flex flex-wrap gap-2">
@@ -393,23 +407,24 @@ export default function JurySpacePage() {
             <div className="mt-6 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
               {isLoading ? (
                 <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-12 text-center text-sm text-slate-500">
-                  Chargement des soutenances affectées...
+                  Chargement des encadrements...
                 </div>
               ) : error ? (
                 <div className="rounded-2xl border border-dashed border-red-200 bg-red-50 px-4 py-12 text-center text-sm text-red-500">
                   {error}
                 </div>
-              ) : filteredDefenses.length === 0 ? (
+              ) : filteredSupervisions.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-14 text-center">
                   <h3 className="text-lg font-semibold text-slate-700">
-                    Aucune soutenance affectée pour le moment
+                    Aucun encadrement affecté pour le moment
                   </h3>
                   <p className="mt-2 text-sm text-slate-500">
-                    Quand l’admin vous affectera comme jury avec une date et une
-                    salle, vos groupes apparaîtront ici.
+                    Quand l’admin affectera vos groupes d’encadrement, ils
+                    apparaîtront ici.
                   </p>
                   <p className="mt-1 text-sm text-slate-400">
-                    Une notification vous sera envoyée plus tard via le backend.
+                    Les livrables, le chat groupe et le suivi seront reliés au
+                    backend plus tard.
                   </p>
                 </div>
               ) : (
@@ -417,34 +432,30 @@ export default function JurySpacePage() {
                   <table className="min-w-full border-separate border-spacing-y-3">
                     <thead>
                       <tr className="bg-slate-100 text-left text-xs uppercase text-slate-600">
-                        <th className="rounded-l-xl px-4 py-3">Date & Salle</th>
-                        <th className="px-4 py-3">Équipe</th>
+                        <th className="rounded-l-xl px-4 py-3">Groupe</th>
+                        <th className="px-4 py-3">Membres</th>
                         <th className="px-4 py-3">Sujet PFE</th>
                         <th className="px-4 py-3">Spécialité</th>
-                        <th className="px-4 py-3">Encadreur(s)</th>
-                        <th className="px-4 py-3">Mon rôle</th>
+                        <th className="px-4 py-3">Dernier Livrable</th>
+                        <th className="px-4 py-3">Co-Encadreur</th>
                         <th className="rounded-r-xl px-4 py-3">Action</th>
                       </tr>
                     </thead>
 
                     <tbody>
-                      {filteredDefenses.map((item) => (
+                      {filteredSupervisions.map((item) => (
                         <tr
                           key={item.id}
                           className="border border-slate-200 bg-white shadow-sm"
                         >
-                          <td className="rounded-l-xl px-4 py-4 align-top text-sm text-slate-700">
-                            <p className="font-semibold">
-                              {new Date(item.date).toLocaleDateString("fr-FR")}{" "}
-                              - {item.time}
-                            </p>
-                            <p className="text-xs text-slate-500">{item.room}</p>
+                          <td className="rounded-l-xl px-4 py-4 align-top text-sm font-semibold text-slate-800">
+                            {item.groupCode}
                           </td>
 
                           <td className="px-4 py-4 align-top text-sm text-slate-700">
                             <div className="flex items-center gap-3">
                               <div className="flex -space-x-2">
-                                {item.groupMembers.slice(0, 3).map((member) => (
+                                {item.members.slice(0, 3).map((member) => (
                                   <div
                                     key={member}
                                     className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-slate-200 text-[10px] font-semibold text-slate-700"
@@ -454,12 +465,9 @@ export default function JurySpacePage() {
                                 ))}
                               </div>
 
-                              <div>
-                                <p className="font-semibold">{item.groupCode}</p>
-                                <p className="text-xs text-slate-500">
-                                  {item.groupMembers.join(", ")}
-                                </p>
-                              </div>
+                              <p className="text-xs text-slate-500">
+                                {item.members.join(", ")}
+                              </p>
                             </div>
                           </td>
 
@@ -479,30 +487,36 @@ export default function JurySpacePage() {
                           </td>
 
                           <td className="px-4 py-4 align-top text-sm text-slate-600">
-                            {item.supervisors.map((sup) => (
-                              <p key={sup}>{sup}</p>
-                            ))}
+                            <div className="flex items-start gap-2">
+                              <FileText size={16} className="mt-0.5 text-slate-400" />
+                              <div>
+                                <p className="font-medium">
+                                  {item.lastDeliverable.title}
+                                </p>
+                                <p
+                                  className={`text-xs font-semibold ${
+                                    livrableStatusColors[item.lastDeliverable.status] ||
+                                    "text-slate-500"
+                                  }`}
+                                >
+                                  {item.lastDeliverable.status}
+                                </p>
+                              </div>
+                            </div>
                           </td>
 
-                          <td className="px-4 py-4 align-top">
-                            <span
-                              className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                roleBadgeColors[item.juryRole] ||
-                                "bg-slate-100 text-slate-700"
-                              }`}
-                            >
-                              {item.juryRole}
-                            </span>
+                          <td className="px-4 py-4 align-top text-sm text-slate-600">
+                            {item.coSupervisor}
                           </td>
 
                           <td className="rounded-r-xl px-4 py-4 align-top">
                             <div className="flex flex-col gap-2">
                               <button
                                 type="button"
-                                onClick={() => handleViewDetails(item)}
+                                onClick={() => handleFollowGroup(item)}
                                 className="rounded-lg bg-[#1A365D] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#16315a]"
                               >
-                                Détails
+                                Suivre
                               </button>
 
                               <button
