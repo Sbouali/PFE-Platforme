@@ -43,7 +43,7 @@ export default function Sidebar() {
           <SidebarItem
             icon={<PlusCircle size={18} />}
             label="Encadrement"
-            to="/encadrement"
+            to="/supervision"
           />
           <SidebarItem
             icon={<BookOpen size={18} />}
