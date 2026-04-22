@@ -4,6 +4,7 @@ import TeacherDashboard from "./pages/TeacherDashboard";
 import SubjectsPage from "./pages/SubjectsPage";
 import JurySpacePage from "./pages/JurySpacePage";
 import SupervisionPage from "./pages/SupervisionPage";
+import JuryDetailsPage from "./pages/JuryDetailsPage";
 export default function App() {
   return (
     <Routes>
@@ -12,6 +13,7 @@ export default function App() {
       <Route path="/subjects" element={<SubjectsPage />} />
       <Route path="/jury-space" element={<JurySpacePage />} />
       <Route path="/supervision" element={<SupervisionPage />} />
+      <Route path="/jury-space/:id" element={<JuryDetailsPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

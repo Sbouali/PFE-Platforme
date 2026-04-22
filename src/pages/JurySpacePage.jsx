@@ -225,13 +225,11 @@ export default function JurySpacePage() {
     navigate("/messages");
   }
 
-  function handleViewDetails(defense) {
-    // BACKEND LATER:
-    // page détails soutenance / groupe / notes / PV
-    // navigate(`/jury-space/${defense.id}`);
-    console.log("Voir détails soutenance:", defense.id);
+ function handleViewDetails(defense) {
+  // BACKEND LATER:
+  // on passe l'id de la soutenance à la page détail
+  navigate(`/jury-space/${defense.id}`);
   }
-
   return (
     <main className="min-h-screen bg-[#f5f6f8]">
       <div className="flex min-h-screen">
