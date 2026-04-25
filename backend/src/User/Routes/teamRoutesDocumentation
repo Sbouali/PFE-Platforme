@@ -1,0 +1,461 @@
+# 👥 Team Management API Documentation
+
+## 📍 Base URL
+
+```bash
+http://localhost:5000/team
+```
+
+---
+
+# 🧭 Overview
+
+This module allows students to:
+
+* Create teams
+* Invite members
+* Accept/reject invitations
+* Request to join teams
+* Manage join requests
+* Leave teams
+
+🔐 Most routes require authentication using **JWT (JSON Web Token)**.
+
+---
+
+# 🔐 Authentication
+
+For protected routes, include:
+
+```http
+Authorization: Bearer YOUR_JWT_TOKEN
+```
+
+---
+
+# 🧑‍🤝‍🧑 1. Create Team
+
+## 🔗 Endpoint
+
+```bash
+POST /team/create
+```
+
+## 🔐 Auth Required
+
+✅ Yes
+
+## 📥 Request Body
+
+```json
+{
+  "name": "Team Alpha",
+  "type": "pfe"
+}
+```
+
+## ✅ Response
+
+```json
+{
+  "message": "Team created successfully",
+  "team_id": 1
+}
+```
+
+---
+
+# 📩 2. Invite Student
+
+## 🔗 Endpoint
+
+```bash
+POST /team/invite
+```
+
+## 🔐 Auth Required
+
+✅ Yes
+
+## 📥 Request Body
+
+```json
+{
+  "student_id": 5
+}
+```
+
+## ✅ Response
+
+```json
+{
+  "message": "Invitation sent successfully"
+}
+```
+
+---
+
+# ✅ 3. Accept Invitation
+
+## 🔗 Endpoint
+
+```bash
+POST /team/accept-invitation
+```
+
+## 🔐 Auth Required
+
+✅ Yes
+
+## 📥 Request Body
+
+```json
+{
+  "invitation_id": 10
+}
+```
+
+## ✅ Response
+
+```json
+{
+  "message": "Invitation accepted"
+}
+```
+
+---
+
+# ❌ 4. Reject Invitation
+
+## 🔗 Endpoint
+
+```bash
+POST /team/reject-invitation
+```
+
+## 🔐 Auth Required
+
+✅ Yes
+
+## 📥 Request Body
+
+```json
+{
+  "invitation_id": 10
+}
+```
+
+## ✅ Response
+
+```json
+{
+  "message": "Invitation rejected"
+}
+```
+
+---
+
+# 🚫 5. Cancel Invitation (Sender Only)
+
+## 🔗 Endpoint
+
+```bash
+POST /team/cancel-invitation
+```
+
+## 🔐 Auth Required
+
+✅ Yes
+
+## 📥 Request Body
+
+```json
+{
+  "invitation_id": 10
+}
+```
+
+## ✅ Response
+
+```json
+{
+  "message": "Invitation cancelled"
+}
+```
+
+---
+
+# 🚪 6. Exit Team
+
+## 🔗 Endpoint
+
+```bash
+POST /team/exit
+```
+
+## 🔐 Auth Required
+
+✅ Yes
+
+## 📥 Request Body
+
+```json
+{
+  "team_id": 1
+}
+```
+
+## ✅ Response
+
+```json
+{
+  "message": "You have left the team"
+}
+```
+
+---
+
+# 📥 7. Request to Join Team
+
+## 🔗 Endpoint
+
+```bash
+POST /team/join-request
+```
+
+## 🔐 Auth Required
+
+✅ Yes
+
+## 📥 Request Body
+
+```json
+{
+  "team_id": 1
+}
+```
+
+## ✅ Response
+
+```json
+{
+  "message": "Join request sent"
+}
+```
+
+---
+
+# 👍 8. Accept Join Request
+
+## 🔗 Endpoint
+
+```bash
+POST /team/accept-request
+```
+
+## 🔐 Auth Required
+
+✅ Yes
+
+## 📥 Request Body
+
+```json
+{
+  "request_id": 15
+}
+```
+
+## ✅ Response
+
+```json
+{
+  "message": "Join request accepted"
+}
+```
+
+---
+
+# 👎 9. Reject Join Request
+
+## 🔗 Endpoint
+
+```bash
+POST /team/reject-request
+```
+
+## 🔐 Auth Required
+
+✅ Yes
+
+## 📥 Request Body
+
+```json
+{
+  "request_id": 15
+}
+```
+
+## ✅ Response
+
+```json
+{
+  "message": "Join request rejected"
+}
+```
+
+---
+
+# 📋 10. Get All Teams
+
+## 🔗 Endpoint
+
+```bash
+GET /team/getTeams
+```
+
+## 🔐 Auth Required
+
+❌ No (Public)
+
+## ✅ Response
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Team Alpha",
+    "type": "pfe"
+  }
+]
+```
+
+---
+
+# 📬 11. Get Join Requests
+
+## 🔗 Endpoint
+
+```bash
+GET /team/getJoinRequests
+```
+
+## 🔐 Auth Required
+
+✅ Yes
+
+## ✅ Response
+
+```json
+[
+  {
+    "request_id": 15,
+    "student_id": 7,
+    "team_id": 1,
+    "status": "pending"
+  }
+]
+```
+
+---
+
+# 💻 Frontend Examples
+
+## 🧪 Create Team
+
+```js
+await fetch("/team/create", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`
+  },
+  body: JSON.stringify({
+    name: "Team Alpha",
+    type: "pfe"
+  })
+});
+```
+
+---
+
+## 🧪 Invite Student
+
+```js
+await fetch("/team/invite", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ student_id: 5 })
+});
+```
+
+---
+
+## 🧪 Accept Invitation
+
+```js
+await fetch("/team/accept-invitation", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ invitation_id: 10 })
+});
+```
+
+---
+
+# ⚠️ Important Notes
+
+## 🔴 Authentication
+
+* All protected routes require JWT
+* Missing/invalid token → `401 Unauthorized`
+
+---
+
+## 🔴 Authorization (Backend Recommendations)
+
+* Only team owner can accept/reject join requests
+* Only invited user can accept invitation
+* Only sender can cancel invitation
+
+---
+
+## 🔴 Team Rules (Suggested)
+
+* A student can belong to only one team
+* Limit team size (e.g. 3–5 members)
+* Restrict team creation to PFE students (optional)
+
+---
+
+# 🚀 Recommended Improvements
+
+* Add `/team/my-team` (get current user team)
+* Add `/team/members`
+* Add notifications system (invites/requests)
+* Add role/middleware checks (e.g. PFE eligibility)
+
+---
+
+# ✅ Summary
+
+| Feature           | Endpoint                     | Auth |
+| ----------------- | ---------------------------- | ---- |
+| Create team       | POST /team/create            | ✅    |
+| Invite student    | POST /team/invite            | ✅    |
+| Accept invitation | POST /team/accept-invitation | ✅    |
+| Reject invitation | POST /team/reject-invitation | ✅    |
+| Cancel invitation | POST /team/cancel-invitation | ✅    |
+| Exit team         | POST /team/exit              | ✅    |
+| Request join      | POST /team/join-request      | ✅    |
+| Accept request    | POST /team/accept-request    | ✅    |
+| Reject request    | POST /team/reject-request    | ✅    |
+| Get teams         | GET /team/getTeams           | ❌    |
+| Get join requests | GET /team/getJoinRequests    | ✅    |
+
+---
