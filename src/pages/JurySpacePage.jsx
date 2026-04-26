@@ -70,12 +70,12 @@ const roleBadgeColors = {
 export default function JurySpacePage() {
   const navigate = useNavigate();
 
-  // BACKEND LATER:
-  // récupérer le prof connecté depuis auth/session/token
-  const [teacherInfo] = useState({
-    fullName: "Pr. Mimoun Malki",
-    profileImage: profileImg,
-  });
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+const [teacherInfo] = useState({
+  fullName: user.fullName || user.email || "Enseignant",
+  profileImage: profileImg,
+});
 
   // état principal
   const [assignedDefenses, setAssignedDefenses] = useState([]);

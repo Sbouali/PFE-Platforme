@@ -46,12 +46,29 @@ export default function SubjectsPage() {
                setIsLoading(true);
               setError("");
 
-             // BACKEND LATER:
-             // const res = await fetch("http://localhost:5000/api/subjects");
-             // const data = await res.json();
-             // setSubjects(data);
+             async function fetchSubjects() {
+               try {
+                setIsLoading(true);
+                setError("");
 
-             setSubjects([]);
+                // 🔥 API CALL
+                const res = await fetch("http://localhost:5000/teacher/topics");
+
+               if (!res.ok) {
+                 throw new Error("Erreur serveur");
+              }
+              const data = await res.json();
+
+              // 🧠 IMPORTANT: adapte selon structure backend
+              setSubjects(data);
+
+              } catch (err) {
+               console.error(err);
+               setError("Impossible de charger les sujets.");
+              } finally {
+                setIsLoading(false);
+              }
+              }
             } catch (err) {
            setError("Impossible de charger les sujets.");
            } finally {

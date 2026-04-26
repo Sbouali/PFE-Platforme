@@ -81,14 +81,13 @@ const mockSupervisions = [
 ];
 
 export default function SupervisionPage() {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
+ const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-  // BACKEND LATER:
-  // ces infos viendront du login/session/token
-  const [teacherInfo] = useState({
-    fullName: "Pr. Mimoun Malki",
-    profileImage: profileImg,
-  });
+const [teacherInfo] = useState({
+  fullName: user.fullName || user.email || "Enseignant",
+  profileImage: profileImg,
+});
 
   // données principales
   const [supervisions, setSupervisions] = useState([]);

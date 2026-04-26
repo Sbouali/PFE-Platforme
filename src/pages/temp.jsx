@@ -31,18 +31,62 @@ const handleChange = (e) => {
     }));
   };
 
-  const handleLogin = () => {
-    if (!formData.email.trim() || !formData.password.trim()) {
-      setError("Veuillez remplir l'email et le mot de passe.");
-      return;
-    }
-    if (!isValidEmail(formData.email)) {
-    setError("Email invalide. Exemple : a.n'importe@esi-sba.dz ou example@gmail.com");
+ const handleLogin = async () => {
+  if (!formData.email.trim() || !formData.password.trim()) {
+    setError("Veuillez remplir l'email et le mot de passe.");
     return;
   }
+
+  if (!isValidEmail(formData.email)) {
+    setError("Email invalide.");
+    return;
+  }
+
+  try {
     setError("");
-    navigate("/dashboard-teacher");
-  };
+
+    const res = await fetch("http://localhost:5000/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setError(data.error || "Erreur de connexion.");
+      return;
+    }
+
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("roles", JSON.stringify(data.roles));
+    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem(
+      "must_change_password",
+      JSON.stringify(data.must_change_password)
+    );
+
+    if (data.must_change_password) {
+      navigate("/change-password");
+      return;
+    }
+
+    if (data.roles.includes("teacher")) {
+      navigate("/dashboard-teacher");
+      return;
+    }
+
+    setError("Rôle non autorisé pour cette interface.");
+  } catch (err) {
+    console.error(err);
+    setError("Erreur serveur. Vérifiez que le backend est lancé.");
+  }
+};
 
   return (
     <main className="min-h-screen bg-slate-100 flex items-center justify-center p-4">

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import Sidebar from "../components/Sidebar";
+import { useNavigate } from "react-router-dom";
 
 /** Grille calendrier (lun–dim), cases vides = null */
 function buildMonthCells(year, monthIndex) {
@@ -112,6 +113,8 @@ function describeArc(cx, cy, r, startAngle, endAngle) {
 }
 
 export default function TeacherDashboard() {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const teacherName = user.fullName || user.email || "Enseignant";
   const [searchQuery, setSearchQuery] = useState("");
   const [viewDate, setViewDate] = useState(() => {
   const t = todayLocal();
@@ -317,7 +320,7 @@ const progressArc = useMemo(() => {
                     className="h-7 w-7 rounded-full object-cover"
                   />
                   <span className="text-xs font-medium text-slate-700">
-                    Pr.Mimoun Malki
+                    {teacherName}
                   </span>
                   <div className="h-8 w-8 rounded-full bg-slate-200" />
                 </div>
@@ -327,7 +330,7 @@ const progressArc = useMemo(() => {
             {/* Heading */}
             <div className="mt-5">
               <h1 className="text-3xl font-bold text-[#2563eb]">
-                Bonjour, Pr.Mimoun Malki !
+                Bonjour, {teacherName} 
               </h1>
               <p className="mt-1 text-sm font-medium text-slate-700">
                 Gestion de vos projets de fin d'études. Gardez un œil sur

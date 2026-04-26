@@ -63,11 +63,20 @@ const login = async (req, res) => {
 
     // 6️⃣ Response
     return res.json({
-      message: "Login successful",
-      token,
-      roles,
-      must_change_password: user.must_change_password === 1,
-    });
+  message: "Login successful",
+  token,
+  roles,
+  must_change_password: user.must_change_password === 1,
+  user: {
+    id: user.id,
+    email: user.email,
+    fullName:
+      user.full_name ||
+      user.name ||
+      `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
+      user.email,
+  },
+});
 
   } catch (error) {
     console.error("Login error:", error);
