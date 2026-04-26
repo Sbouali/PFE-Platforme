@@ -1,0 +1,340 @@
+# 💬 Chat & Messaging API Documentation
+
+## 📍 Base URL
+
+```bash id="9r2m1x"
+http://localhost:5000/chat
+```
+
+---
+
+# 🧭 Overview
+
+This module allows authenticated users to:
+
+* Send and receive messages داخل الفريق
+* Upload and share files
+* Track message seen status
+* Receive notifications
+
+🔐 **All routes require authentication (JWT)**
+
+---
+
+# 🔐 Authentication
+
+Every request must include:
+
+```http id="6w3qkp"
+Authorization: Bearer YOUR_JWT_TOKEN
+```
+
+---
+
+# 💬 1. Get Team Messages
+
+## 🔗 Endpoint
+
+```bash id="7y8v4n"
+GET /chat/team/:teamId/messages
+```
+
+## 🔐 Auth Required
+
+✅ Yes
+
+## 📌 URL Params
+
+```bash id="p0k5zd"
+teamId = ID of the team
+```
+
+## ✅ Response
+
+```json id="x2n4bm"
+[
+  {
+    "id": 1,
+    "team_id": 1,
+    "sender_id": 5,
+    "message": "Hello team!",
+    "mssg_type": "text",
+    "file_url": null,
+    "created_at": "2026-04-17T10:00:00Z"
+  }
+]
+```
+
+---
+
+# ✉️ 2. Send Text Message
+
+## 🔗 Endpoint
+
+```bash id="u3h8cs"
+POST /chat/send
+```
+
+## 🔐 Auth Required
+
+✅ Yes
+
+## 📥 Request Body
+
+```json id="m1z9qe"
+{
+  "teamId": 1,
+  "message": "Hello everyone!"
+}
+```
+
+## ✅ Response
+
+```json id="v5c7yt"
+{
+  "message": "Message sent"
+}
+```
+
+---
+
+# 👁️ 3. Mark Messages as Seen
+
+## 🔗 Endpoint
+
+```bash id="k9d2lw"
+POST /chat/seen
+```
+
+## 🔐 Auth Required
+
+✅ Yes
+
+## 📥 Request Body
+
+```json id="s4g8op"
+{
+  "teamId": 1
+}
+```
+
+## ✅ Response
+
+```json id="b7x3na"
+{
+  "message": "Messages marked as seen"
+}
+```
+
+---
+
+# 🔔 4. Get Notifications
+
+## 🔗 Endpoint
+
+```bash id="e6r1fj"
+GET /chat/notifications
+```
+
+## 🔐 Auth Required
+
+✅ Yes
+
+## ✅ Response
+
+```json id="q8t2mz"
+[
+  {
+    "id": 1,
+    "type": "message",
+    "content": "New message in your team",
+    "is_read": false,
+    "created_at": "2026-04-17T10:00:00Z"
+  }
+]
+```
+
+---
+
+# 📎 5. Send File Message
+
+## 🔗 Endpoint
+
+```bash id="z1x9vb"
+POST /chat/send-file
+```
+
+## 🔐 Auth Required
+
+✅ Yes
+
+## 📥 Request Type
+
+`multipart/form-data`
+
+## 📥 Form Data
+
+| Key    | Type | Description    |
+| ------ | ---- | -------------- |
+| file   | File | File to upload |
+| teamId | Int  | Team ID        |
+
+---
+
+## ✅ Response
+
+```json id="n4m8yc"
+{
+  "message": "File sent",
+  "file": "/uploads/1713360000-uuid.pdf"
+}
+```
+
+---
+
+## ❌ Error Responses
+
+```json id="h2p6ks"
+{ "message": "No file uploaded" }
+{ "message": "Not a team member" }
+```
+
+---
+
+# 📂 File Access
+
+Uploaded files are accessible via:
+
+```bash id="d8f5ar"
+/uploads/{filename}
+```
+
+👉 Example:
+
+```bash id="c3u7pl"
+http://localhost:5000/uploads/1713360000-uuid.pdf
+```
+
+---
+
+# 💻 Frontend Examples
+
+## 🧪 Get Messages
+
+```js id="l6r2wd"
+await fetch(`/chat/team/${teamId}/messages`, {
+  headers: {
+    Authorization: `Bearer ${token}`
+  }
+});
+```
+
+---
+
+## 🧪 Send Text Message
+
+```js id="y9q4te"
+await fetch("/chat/send", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`
+  },
+  body: JSON.stringify({
+    teamId: 1,
+    message: "Hello!"
+  })
+});
+```
+
+---
+
+## 🧪 Send File
+
+```js id="g5n8vx"
+const formData = new FormData();
+formData.append("file", selectedFile);
+formData.append("teamId", 1);
+
+await fetch("/chat/send-file", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${token}`
+  },
+  body: formData
+});
+```
+
+---
+
+## 🧪 Mark as Seen
+
+```js id="u1k7oz"
+await fetch("/chat/seen", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`
+  },
+  body: JSON.stringify({ teamId: 1 })
+});
+```
+
+---
+
+## 🧪 Get Notifications
+
+```js id="b4m9qs"
+await fetch("/chat/notifications", {
+  headers: {
+    Authorization: `Bearer ${token}`
+  }
+});
+```
+
+---
+
+# ⚠️ Important Notes
+
+## 🔴 Authentication
+
+* All routes are protected
+* Missing/invalid token → `401 Unauthorized`
+
+---
+
+## 🔴 Authorization
+
+* User must be a member of the team to:
+
+  * send messages
+  * upload files
+  * view messages
+
+---
+
+## 🔴 File Upload Rules (Recommended)
+
+* Max file size (e.g. 5MB)
+* Allowed types: PDF, DOCX, PNG, JPG
+
+---
+
+## 🔴 Security
+
+* Validate file uploads to prevent malicious files
+* Store files securely (consider cloud storage later)
+
+---
+
+# ✅ Summary
+
+| Feature       | Endpoint                    | Method | Auth |
+| ------------- | --------------------------- | ------ | ---- |
+| Get messages  | /chat/team/:teamId/messages | GET    | ✅    |
+| Send message  | /chat/send                  | POST   | ✅    |
+| Send file     | /chat/send-file             | POST   | ✅    |
+| Mark seen     | /chat/seen                  | POST   | ✅    |
+| Notifications | /chat/notifications         | GET    | ✅    |
+
+---

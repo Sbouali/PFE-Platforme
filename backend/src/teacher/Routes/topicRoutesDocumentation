@@ -1,0 +1,320 @@
+# 👨‍🏫 Teacher Topic Management API Documentation
+
+## 📍 Base URL
+
+```bash id="p2k8vn"
+http://localhost:5000/teacher
+```
+
+---
+
+# 🧭 Overview
+
+This module allows **teachers** to:
+
+* Create topics
+* Update topics
+* Delete topics
+* View their draft topics
+
+🔐 All routes require authentication and **teacher role**.
+
+---
+
+# 🔐 Authentication & Authorization
+
+All endpoints require:
+
+```http id="q7m3xs"
+Authorization: Bearer YOUR_JWT_TOKEN
+```
+
+### ✅ Access Control
+
+* User must be authenticated (valid JWT)
+* User must have role: **teacher**
+
+---
+
+# 📝 1. Create Topic
+
+## 🔗 Endpoint
+
+```bash id="x9d4ru"
+POST /teacher/create-topic
+```
+
+## 🔐 Auth Required
+
+✅ Yes (Teacher only)
+
+---
+
+## 📥 Request Body
+
+```json id="j2v6pk"
+{
+  "title": "AI-based Chatbot for Education",
+  "description": "Develop a chatbot to assist students using NLP",
+  "status": "draft"
+}
+```
+
+> ℹ️ `status` can be:
+
+* `"draft"` (default while editing)
+* `"published"` (if ready)
+
+---
+
+## ✅ Response
+
+```json id="r8y1tw"
+{
+  "message": "Topic created successfully",
+  "topic_id": 1
+}
+```
+
+---
+
+# ✏️ 2. Update Topic
+
+## 🔗 Endpoint
+
+```bash id="m5h2cz"
+PUT /teacher/update_topic/:id
+```
+
+## 🔐 Auth Required
+
+✅ Yes (Teacher only)
+
+---
+
+## 📌 URL Params
+
+```bash id="w3g7nf"
+id = Topic ID
+```
+
+---
+
+## 📥 Request Body
+
+```json id="c6t9yb"
+{
+  "title": "Updated Title",
+  "description": "Updated description",
+  "status": "published"
+}
+```
+
+---
+
+## ✅ Response
+
+```json id="v1n8qs"
+{
+  "message": "Topic updated successfully"
+}
+```
+
+---
+
+## ❌ Error Examples
+
+```json id="z4u0lm"
+{ "error": "Topic not found" }
+{ "error": "Unauthorized" }
+```
+
+---
+
+# 🗑️ 3. Delete Topic
+
+## 🔗 Endpoint
+
+```bash id="k8b2ye"
+DELETE /teacher/delete_topic/:id
+```
+
+## 🔐 Auth Required
+
+✅ Yes (Teacher only)
+
+---
+
+## 📌 URL Params
+
+```bash id="o5r3jw"
+id = Topic ID
+```
+
+---
+
+## ✅ Response
+
+```json id="n7p6ax"
+{
+  "message": "Topic deleted successfully"
+}
+```
+
+---
+
+## ❌ Error Examples
+
+```json id="s9q1vh"
+{ "error": "Topic not found" }
+{ "error": "Unauthorized" }
+```
+
+---
+
+# 📄 4. Get My Draft Topics
+
+## 🔗 Endpoint
+
+```bash id="u3l8dk"
+GET /teacher/my-drafts
+```
+
+## 🔐 Auth Required
+
+✅ Yes (Teacher only)
+
+---
+
+## ✅ Response
+
+```json id="t2f5cm"
+[
+  {
+    "id": 1,
+    "title": "AI Chatbot",
+    "description": "NLP-based assistant",
+    "status": "draft",
+    "created_at": "2026-04-17T10:00:00Z"
+  }
+]
+```
+
+---
+
+# 💻 Frontend Examples
+
+## 🧪 Create Topic
+
+```js id="y8e2ru"
+await fetch("/teacher/create-topic", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`
+  },
+  body: JSON.stringify({
+    title: "AI Chatbot",
+    description: "NLP assistant",
+    status: "draft"
+  })
+});
+```
+
+---
+
+## 🧪 Update Topic
+
+```js id="q1p7sn"
+await fetch(`/teacher/update_topic/${topicId}`, {
+  method: "PUT",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`
+  },
+  body: JSON.stringify({
+    title: "Updated Title",
+    description: "Updated description",
+    status: "published"
+  })
+});
+```
+
+---
+
+## 🧪 Delete Topic
+
+```js id="l4w9zt"
+await fetch(`/teacher/delete_topic/${topicId}`, {
+  method: "DELETE",
+  headers: {
+    Authorization: `Bearer ${token}`
+  }
+});
+```
+
+---
+
+## 🧪 Get Draft Topics
+
+```js id="d6m3kv"
+await fetch("/teacher/my-drafts", {
+  headers: {
+    Authorization: `Bearer ${token}`
+  }
+});
+```
+
+---
+
+# ⚠️ Important Notes
+
+## 🔴 Authentication
+
+* All routes require valid JWT
+* Missing/invalid token → `401 Unauthorized`
+
+---
+
+## 🔴 Authorization
+
+* Only users with role **teacher** can access these endpoints
+* Enforced via `requireRole(["teacher"])`
+
+---
+
+## 🔴 Data Ownership (Recommended)
+
+* Teachers should only:
+
+  * update their own topics
+  * delete their own topics
+
+---
+
+## 🔴 Status Handling
+
+* `"draft"` → not visible to students
+* `"published"` → available for selection
+
+---
+
+# 🚀 Recommended Improvements
+
+* Add `/teacher/my-topics` (all topics, not just drafts)
+* Add pagination for large topic lists
+* Add topic approval workflow (admin validation)
+* Add file attachments for topics
+
+---
+
+# ✅ Summary
+
+| Feature          | Endpoint                  | Method | Auth | Role    |
+| ---------------- | ------------------------- | ------ | ---- | ------- |
+| Create topic     | /teacher/create-topic     | POST   | ✅    | Teacher |
+| Update topic     | /teacher/update_topic/:id | PUT    | ✅    | Teacher |
+| Delete topic     | /teacher/delete_topic/:id | DELETE | ✅    | Teacher |
+| Get draft topics | /teacher/my-drafts        | GET    | ✅    | Teacher |
+
+---

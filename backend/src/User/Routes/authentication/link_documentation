@@ -1,0 +1,271 @@
+# 🔐 Authentication API Documentation
+
+## 📌 Overview
+
+This module handles:
+
+* User login
+* Password change (first login or manual)
+
+Authentication is based on **JWT (JSON Web Token)**.
+
+**Base URL:**
+
+```
+http://localhost:5000
+```
+
+All routes are prefixed with:
+
+```
+/auth
+```
+
+---
+
+# 🔑 1. Login
+
+## 🔗 Endpoint
+
+```
+POST /auth/login
+```
+
+---
+
+## 📥 Request Body
+
+```json
+{
+  "email": "user@example.com",
+  "password": "YourPassword123"
+}
+```
+
+---
+
+## ✅ Success Response
+
+```json
+{
+  "message": "Login successful",
+  "token": "JWT_TOKEN_HERE",
+  "roles": ["student", "admin"],
+  "must_change_password": true
+}
+```
+
+---
+
+## ❌ Error Responses
+
+```json
+{ "error": "Email and password are required" }
+{ "error": "Invalid credentials" }
+{ "error": "Wrong password, try again" }
+```
+
+---
+
+# 🔐 2. Change Password
+
+## 🔗 Endpoint
+
+```
+POST /auth/change-password
+```
+
+---
+
+## 🔐 Headers (REQUIRED)
+
+```
+Authorization: Bearer YOUR_JWT_TOKEN
+```
+
+⚠️ Must include the word **Bearer**
+
+---
+
+## 📥 Request Body
+
+```json
+{
+  "new_password": "NewPassword123",
+  "confirm_password": "NewPassword123"
+}
+```
+
+---
+
+## ✅ Success Response
+
+```json
+{
+  "message": "Password changed successfully",
+  "token": "NEW_JWT_TOKEN"
+}
+```
+
+👉 Replace the old token with the new one.
+
+---
+
+## ❌ Error Responses
+
+```json
+{ "error": "Both password fields are required" }
+{ "error": "Passwords do not match" }
+{ "error": "Password must be at least 8 characters" }
+{ "error": "Password must contain at least one uppercase letter" }
+{ "error": "Password must contain at least one number" }
+{ "error": "New password must differ from your current password" }
+{ "error": "Unauthorized" }
+```
+
+---
+
+# 🔄 Authentication Flow
+
+## 🪜 Step-by-step
+
+### 1. User logs in
+
+* Call `/auth/login`
+* Store:
+
+  * token
+  * roles
+  * must_change_password
+
+---
+
+### 2. Check password requirement
+
+```js
+if (data.must_change_password) {
+  window.location.href = "/change-password";
+}
+```
+
+---
+
+### 3. User changes password
+
+* Call `/auth/change-password`
+* Replace old token with new token
+
+---
+
+### 4. Access protected routes
+
+Include token in every request:
+
+```js
+headers: {
+  Authorization: `Bearer ${token}`
+}
+```
+
+---
+
+# 💻 Frontend Examples
+
+## Login Example
+
+```js
+const res = await fetch("/auth/login", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    email: "user@example.com",
+    password: "Password123"
+  })
+});
+
+const data = await res.json();
+
+localStorage.setItem("token", data.token);
+
+if (data.must_change_password) {
+  window.location.href = "/change-password";
+}
+```
+
+---
+
+## Change Password Example
+
+```js
+const token = localStorage.getItem("token");
+
+const res = await fetch("/auth/change-password", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`
+  },
+  body: JSON.stringify({
+    new_password: "NewPassword123",
+    confirm_password: "NewPassword123"
+  })
+});
+
+const data = await res.json();
+
+// update token after password change
+localStorage.setItem("token", data.token);
+```
+
+---
+
+# 🔐 Token Details
+
+* Type: JWT
+* Expiration: **8 hours**
+* Contains:
+
+  * user id
+  * email
+  * roles
+  * must_change_password
+
+---
+
+# ⚠️ Security Notes
+
+## 🔴 Token Expiration
+
+* User must re-login after 8 hours
+
+---
+
+## 🔴 Best Practices
+
+* Do NOT store passwords
+* Prefer HttpOnly cookies over localStorage (production)
+* Always send token in Authorization header
+* Use HTTPS in production
+
+---
+
+# 📌 Summary
+
+| Feature         | Endpoint                   | Auth Required |
+| --------------- | -------------------------- | ------------- |
+| Login           | POST /auth/login           | ❌             |
+| Change Password | POST /auth/change-password | ✅             |
+
+---
+
+# 📌 Notes for Frontend
+
+* Store JWT token after login
+* Handle `must_change_password`
+* Replace token after password change
+* Attach token to all protected requests
+* Handle token expiration (redirect to login)
+
+---
