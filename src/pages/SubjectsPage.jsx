@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Filter, Plus, Star, Pencil, X , Upload} from "lucide-react";
+import { Filter, Plus, Star, Pencil, X , Upload , Trash2} from "lucide-react";
 import Sidebar from "../components/Sidebar";
 
 
@@ -12,6 +12,35 @@ const badgeColors = {
   SIW: "bg-blue-100 text-blue-700",
   ISI: "bg-green-100 text-green-700",
 };
+const specialityIdMap = {
+  IASD: 1,
+  CYS: 2,
+  SIW: 3,
+  ISI: 4,
+};
+
+const specialityNameMap = {
+  1: "IASD",
+  2: "CYS",
+  3: "SIW",
+  4: "ISI",
+};
+
+const CURRENT_ACADEMIC_YEAR = new Date().getFullYear();
+
+function mapTopicFromBackend(topic) {
+  return {
+    id: topic.id,
+    title: topic.title,
+    description: topic.description || "",
+    specialty: specialityNameMap[topic.speciality_id] || "ISI",
+    validatedByAdmin: topic.visibility === "public",
+    status: topic.visibility === "public" ? "Validé" : "En attente",
+    favorites: 0,
+    pdfFile: null,
+    isPublishedToStudents: topic.visibility === "public",
+  };
+}
 
 export default function SubjectsPage() {
   const [subjects, setSubjects] = useState([]);
@@ -41,41 +70,34 @@ export default function SubjectsPage() {
       return matchesSearch && matchesSpecialty;
     });
   }, [subjects, searchQuery, selectedSpecialty]);
-        async function fetchSubjects() {
-         try {
-               setIsLoading(true);
-              setError("");
+       async function fetchSubjects() {
+          try {
+              setIsLoading(true);
+            setError("");
 
-             async function fetchSubjects() {
-               try {
-                setIsLoading(true);
-                setError("");
+            const token = localStorage.getItem("token");
 
-                // 🔥 API CALL
-                const res = await fetch("http://localhost:5000/teacher/topics");
+            const res = await fetch("http://localhost:5000/teacher/my-drafts", {
+                headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
 
-               if (!res.ok) {
-                 throw new Error("Erreur serveur");
-              }
-              const data = await res.json();
+            const data = await res.json();
 
-              // 🧠 IMPORTANT: adapte selon structure backend
-              setSubjects(data);
+            if (!res.ok || !data.success) {
+            throw new Error(data.message || "Erreur serveur");
+            }
 
-              } catch (err) {
-               console.error(err);
-               setError("Impossible de charger les sujets.");
-              } finally {
-                setIsLoading(false);
-              }
-              }
+            setSubjects(data.data.map(mapTopicFromBackend));
             } catch (err) {
-           setError("Impossible de charger les sujets.");
-           } finally {
-           setIsLoading(false);
-           }
-        }  
-        useEffect(() => {
+             console.error(err);
+             setError("Impossible de charger les sujets.");
+            } finally {
+             setIsLoading(false);
+            }
+        }
+         useEffect(() => {
         fetchSubjects();
         }, []);
         
@@ -121,50 +143,92 @@ export default function SubjectsPage() {
             }));
         }
 
-       function handleSubmit(e) {
-          e.preventDefault();
+        async function handleSubmit(e) {
+            e.preventDefault();
 
            const title = formData.title.trim();
            const description = formData.description.trim();
 
             if (!title || !description) return;
 
-            if (editingId) {
-                // BACKEND LATER:
-                // envoyer la modification du sujet au backend avec PUT
-              setSubjects((prev) =>
-              prev.map((subject) =>
-              subject.id === editingId
-              ? {
-              ...subject,
-              title,
-              specialty: formData.specialty,
-              description,
-              pdfFile: formData.pdfFile || subject.pdfFile || null,
-               }
-               : subject,
-               ),
-               );
-            } else {
-            const newSubject = {
-            id: crypto.randomUUID(),
-            title,
-            specialty: formData.specialty,
-            status: "En attente",
-            description,
-            validatedByAdmin: false,
-            favorites: 0,
-            pdfFile: formData.pdfFile,
-            isPublishedToStudents: false,
-            };
-            // BACKEND LATER:
-            // envoyer le nouveau sujet au backend avec POST
-            setSubjects((prev) => [newSubject, ...prev]);
+            try {
+               const token = localStorage.getItem("token");
+
+              const payload = {
+               title,
+               description,
+               speciality_id: specialityIdMap[formData.specialty],
+               academic_year: CURRENT_ACADEMIC_YEAR,
+              };
+ 
+              if (editingId) {
+              const res = await fetch(
+                `http://localhost:5000/teacher/update_topic/${editingId}`,
+              {
+               method: "PUT",
+                headers: {
+                "Content-Type": "application/json",
+                 Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(payload),
+              },
+              );
+
+              const data = await res.json();
+
+              if (!res.ok || !data.success) {
+               throw new Error(data.message || "Erreur modification");
+              }
+              } else {
+              const res = await fetch("http://localhost:5000/teacher/create-topic", {
+               method: "POST",
+               headers: {
+               "Content-Type": "application/json",
+               Authorization: `Bearer ${token}`,
+               },
+               body: JSON.stringify(payload),
+             });
+
+              const data = await res.json();
+
+              if (!res.ok || !data.success) {
+              throw new Error(data.message || "Erreur création");
+              }
+              }
+
+              await fetchSubjects();
+             closeModal();
+             } catch (err) {
+             console.error(err);
+              setError(err.message || "Impossible d'enregistrer le sujet.");
             }
+            }
+           async function handleDeleteSubject(id) {
+               const confirmDelete = window.confirm("Voulez-vous vraiment supprimer ce sujet ?");
+              if (!confirmDelete) return;
 
-           closeModal();
-        }
+            try {
+            const token = localStorage.getItem("token");
 
+              const res = await fetch(`http://localhost:5000/teacher/delete_topic/${id}`, {
+              method: "DELETE",
+               headers: {
+                Authorization: `Bearer ${token}`,
+                },
+             });
+
+              const data = await res.json();
+
+              if (!res.ok || !data.success) {
+              throw new Error(data.message || "Erreur suppression");
+              }
+
+            await fetchSubjects();
+           } catch (err) {
+            console.error(err);
+            setError(err.message || "Impossible de supprimer le sujet.");
+           }
+          }
   return (
     <main className="min-h-screen bg-[#f5f6f8]">
       <div className="flex min-h-screen">
@@ -280,13 +344,21 @@ export default function SubjectsPage() {
                       </div>
                     </div>
                     <div className="mt-4 flex items-center justify-end gap-2">
-                        <button
-                          type="button"
-                           onClick={() => openEditModal(subject)}
-                           className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-blue-600"
-                           >
-                           <Pencil size={17} />
-                        </button>
+                      <button
+                      type="button"
+                      onClick={() => openEditModal(subject)}
+                      className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-blue-600"
+                      >
+                      <Pencil size={17} />
+                      </button>
+
+                      <button
+                     type="button"
+                     onClick={() => handleDeleteSubject(subject.id)}
+                     className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-red-600"
+                     >
+                      <Trash2 size={17} />
+                      </button>
                     </div>
                   </div>
                 ))
